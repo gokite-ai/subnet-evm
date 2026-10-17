@@ -29,10 +29,12 @@ ARG BUILDPLATFORM
 # build_env.sh is used to capture the environmental changes required by the build step since RUN
 # environment state is not otherwise persistent.
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ] && [ "$BUILDPLATFORM" != "linux/arm64" ]; then \
-  apt-get update && apt-get install -y gcc-aarch64-linux-gnu && \
+  apt-get update && apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu && \
+  rm -rf /var/lib/apt/lists/* && \
   echo "export CC=aarch64-linux-gnu-gcc" > ./build_env.sh \
   ; elif [ "$TARGETPLATFORM" = "linux/amd64" ] && [ "$BUILDPLATFORM" != "linux/amd64" ]; then \
-  apt-get update && apt-get install -y gcc-x86-64-linux-gnu && \
+  apt-get update && apt-get install -y --no-install-recommends gcc-x86-64-linux-gnu && \
+  rm -rf /var/lib/apt/lists/* && \
   echo "export CC=x86_64-linux-gnu-gcc" > ./build_env.sh \
   ; else \
   echo "export CC=gcc" > ./build_env.sh \
@@ -52,7 +54,7 @@ RUN . ./build_env.sh && \
 # ============= Cleanup Stage ================
 FROM $AVALANCHEGO_NODE_IMAGE AS execution
 
-# Copy the evm binary into the correct location in the container
+# Copy the evm binary into the correct location in the container with secure execution permissions
 ARG VM_ID=srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
 ENV AVAGO_PLUGIN_DIR="/avalanchego/build/plugins"
-COPY --from=builder /build/build/subnet-evm $AVAGO_PLUGIN_DIR/$VM_ID
+COPY --from=builder --chmod=0755 /build/build/subnet-evm $AVAGO_PLUGIN_DIR/$VM_ID
