@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  kite-validator-1:
+    image: kiteai/subnet-evm:latest
+    container_name: kite-validator-1
+    environment:
+      - NETWORK_ID=kite-testnet
+      - CHAIN_ID=2368
+      - LOG_LEVEL=info
+    ports:
+      - "9650:9650"
+      - "9651:9651"
+    volumes:
+      - validator1_data:/root/.avalanchego
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9650/ext/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  kite-validator-2:
+    image: kiteai/subnet-evm:latest
+    container_name: kite-validator-2
+    environment:
+      - NETWORK_ID=kite-testnet
+      - CHAIN_ID=2368
+      - BOOTSTRAP_IPS=kite-validator-1:9651
+      - LOG_LEVEL=info
+    ports:
+      - "9652:9650"
+      - "9653:9651"
+    volumes:
+      - validator2_data:/root/.avalanchego
+    depends_on:
+      kite-validator-1:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  validator1_data:
+  validator2_data:
