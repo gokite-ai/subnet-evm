@@ -3,12 +3,14 @@
 set -euo pipefail
 
 RPC_URL="${1:-http://127.0.0.1:9650/ext/bc/2368/rpc}"
-ITERATIONS="${2:-10}"
+ITERATIONS="${2:-20}"
+CONCURRENCY="${3:-5}"
 
 echo "============================================="
-echo "Kite Subnet EVM RPC Benchmark"
+echo "Kite Subnet EVM RPC Benchmark & Load Tester"
 echo "Target Endpoint: $RPC_URL"
-echo "Iterations: $ITERATIONS"
+echo "Total Iterations: $ITERATIONS"
+echo "Concurrency: $CONCURRENCY"
 echo "============================================="
 
 measure_call() {
@@ -20,6 +22,25 @@ measure_call() {
     "$RPC_URL"
 }
 
-echo "Testing basic methods..."
-measure_call "eth_blockNumber" "[]"
-measure_call "eth_chainId" "[]"
+run_concurrent_test() {
+  local method="$1"
+  local params="$2"
+  local count="$3"
+  local pids=()
+  local tmpfile
+  tmpfile=$(mktemp)
+
+  for i in $(seq 1 "$count"); do
+    measure_call "$method" "$params" >> "$tmpfile" &
+    pids+=($!)
+    if (( i % CONCURRENCY == 0 )); then
+      wait "${pids[@]}"
+      pids=()
+    fi
+  done
+  if [ ${#pids[@]} -gt 0 ]; then
+    wait "${pids[@]}"
+  fi
+  cat "$tmpfile"
+  rm -f "$tmpfile"
+}
