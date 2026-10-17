@@ -100,3 +100,8 @@ There are two options when using the Avalanche-CLI:
 ## Releasing
 
 You can refer to the [`docs/releasing/README.md`](docs/releasing/README.md) file for the release process.
+
+
+## Kite Network Specifications
+
+For Kite AI Subnet-EVM chain parameters, precompiles, and local deployment instructions, see [Kite Network Specifications](docs/kite-networks.md).
