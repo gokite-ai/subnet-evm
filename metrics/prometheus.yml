@@ -1,0 +1,25 @@
+# Prometheus Scrape Configuration for Kite Subnet-EVM Nodes
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'kite-subnet-evm'
+    metrics_path: '/ext/metrics'
+    scheme: 'http'
+    static_configs:
+      - targets: ['localhost:9650']
+        labels:
+          network: 'kite-testnet'
+          chain_id: '2368'
+          role: 'validator'
+
+  - job_name: 'kite-subnet-rpc'
+    metrics_path: '/ext/bc/2368/metrics'
+    scheme: 'http'
+    static_configs:
+      - targets: ['localhost:9650']
+        labels:
+          network: 'kite-testnet'
+          chain_id: '2368'
+          role: 'rpc'
